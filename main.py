@@ -23,4 +23,4 @@ api.add_resource(update, '/cronschedule/<string:date>/<string:id>')
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(port=6001)
