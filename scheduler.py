@@ -14,13 +14,21 @@ def executejob(id):
     print(response.text)
 
 def cron(cron_in_secs, id, date):
-    if cron_in_secs > 30:
-        for i in range(30):
-            sleep(cron_in_secs/30)
+    if cron_in_secs > 4294967:
+            splitted_time = cron_in_secs / 200
+            if splitted_time < 4294967:
+                for i in range(200):
+                    sleep(cron_in_secs/200)
+                remove_from_list({"id": id, "date": date})
+                executejob(id)
+
+            else:
+                sleep(3)
+                remove_from_list({"id": id, "date": date})
     else:
         sleep(cron_in_secs)
-    remove_from_list({"id": id, "date":date})
-    executejob(id)
+        remove_from_list({"id": id, "date":date})
+        executejob(id)
 
 
 def process(date, id):

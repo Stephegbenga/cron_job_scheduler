@@ -23,6 +23,7 @@ def add_to_list(data):
         return "error"
 
 def remove_from_list(req):
+    print(req)
     try:
         db = open(database)
         db_infos = json.loads(db.read())
