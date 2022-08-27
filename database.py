@@ -41,12 +41,11 @@ def find_in_list(id, date):
         users = json.loads(db.read())
         for user in users:
             if id == user['id']:
-                if date > user['date']:
-                    check = find_in_trialcancelled(id, user['date'])
-                    if check:
-                        print("Trial class already cancelled")
-                    else:
-                        add_to_trialcancelled({"id": id, "date": user['date']})
+                check = find_in_trialcancelled(id, user['date'])
+                if check:
+                    print("Trial class already cancelled")
+                else:
+                    add_to_trialcancelled({"id": id, "date": user['date']})
 
                 if user['date'] == date:
                     return user
