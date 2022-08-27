@@ -5,13 +5,18 @@ import threading
 from time import sleep
 import requests
 import json
-from database import find_in_list, add_to_list, remove_from_list
+from database import find_in_list, add_to_list, remove_from_list, find_in_trialcancelled
 
 
-def executejob(id):
-    url = "http://127.0.0.1:2001/cronexecute?number={}".format(id)
-    response = requests.request("GET", url)
-    print(response.text)
+def executejob(id, date):
+    check_if_is_cancelled = find_in_trialcancelled(id, date)
+    if check_if_is_cancelled:
+        print("This Trial class has alredy been cancelled")
+    else:
+        url = "http://127.0.0.1:2001/cronexecute?number={}".format(id)
+        response = requests.request("GET", url)
+        print(response.text)
+
 
 def cron(cron_in_secs, id, date):
     if cron_in_secs > 4294967:
@@ -20,15 +25,14 @@ def cron(cron_in_secs, id, date):
                 for i in range(200):
                     sleep(cron_in_secs/200)
                 remove_from_list({"id": id, "date": date})
-                executejob(id)
-
+                executejob(id, date)
             else:
                 sleep(3)
                 remove_from_list({"id": id, "date": date})
     else:
         sleep(cron_in_secs)
         remove_from_list({"id": id, "date":date})
-        executejob(id)
+        executejob(id, date)
 
 
 def process(date, id):
@@ -46,15 +50,14 @@ def process(date, id):
         data = {"status": "success"}
     else:
         data = {"status": "error", "reason": "date is in the past"}
-
     return data
 
 
 class update(Resource):
     def get(self, date, id):
         req = {"date": date, "id": id}
-        check = find_in_list(id)
-
+        print(req)
+        check = find_in_list(id, date)
         if check:
             data = {"status": "error", "reason": "Cron Job Already Scheduled"}
         else:

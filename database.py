@@ -1,41 +1,86 @@
 import json
+from time import sleep
+database_list = 'list.json'
+database_pause = 'trialcancelled.json'
 
-database = 'list.json'
-def find_in_list(id):
+def find_in_trialcancelled(id, date):
     try:
-        db = open(database)
+        db = open(database_pause)
         users = json.loads(db.read())
         for user in users:
-            if user['id'] == id:
+            if user['id'] == id and user['date'] == date:
                 return user
     except Exception as e:
         print(e)
 
-def add_to_list(data):
+def add_to_trialcancelled(data):
     try:
-        db = open(database)
+        db = open(database_pause)
         db_infos = json.loads(db.read())
         db_infos.append(data)
-        with open(database, 'w') as info:
+        with open(database_pause, 'w') as info:
             json.dump(db_infos, info, indent=2)
     except Exception as e:
         print(e)
         return "error"
+
+def remove_from_trialcancelled(req):
+    try:
+        db = open(database_pause)
+        db_infos = json.loads(db.read())
+        db_infos.remove(req)
+        with open(database_pause, 'w') as info:
+            json.dump(db_infos, info, indent=2)
+    except Exception as e:
+        return "error"
+
+
+def find_in_list(id, date):
+    try:
+        db = open(database_list)
+        users = json.loads(db.read())
+        for user in users:
+            if id == user['id']:
+                if date > user['date']:
+                    check = find_in_trialcancelled(id, user['date'])
+                    if check:
+                        print("Trial class already cancelled")
+                    else:
+                        add_to_trialcancelled({"id": id, "date": user['date']})
+
+                if user['date'] == date:
+                    return user
+    except Exception as e:
+        print(e)
+
+
+def add_to_list(data):
+    try:
+        db = open(database_list)
+        db_infos = json.loads(db.read())
+        db_infos.append(data)
+        with open(database_list, 'w') as info:
+            json.dump(db_infos, info, indent=2)
+    except Exception as e:
+        print(e)
+        return "error"
+
 
 def remove_from_list(req):
     print(req)
     try:
-        db = open(database)
+        db = open(database_list)
         db_infos = json.loads(db.read())
         db_infos.remove(req)
-        with open(database, 'w') as info:
+        with open(database_list, 'w') as info:
             json.dump(db_infos, info, indent=2)
     except Exception as e:
         print(e)
         return "error"
 
+
 def getall():
-    db = open(database)
+    db = open(database_list)
     users = json.loads(db.read())
     if users:
         return users

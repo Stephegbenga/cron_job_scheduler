@@ -1,6 +1,6 @@
 from scheduler import *
-from flask_restful import Resource, Api
-from database import getall
+from flask_restful import Resource, Api, request
+from database import getall, find_in_trialcancelled, add_to_trialcancelled
 app = Flask(__name__)
 api = Api(app)
 
@@ -18,6 +18,18 @@ if cron_jobs:
 def homepage():
     return "Cron Task Scheduler"
 
+@app.route('/cancel_trialclass', methods=['POST'])
+def cancel_trialclass():
+    req = request.get_json()
+    id = req["id"]
+    date = req["date"]
+    check = find_in_trialcancelled(id, date)
+    if check:
+        message = "leads trial already cancelled"
+    else:
+        add_to_trialcancelled(req)
+        message = "Leads trial cancelled successfully"
+    return message
 
 api.add_resource(update, '/cronschedule/<string:date>/<string:id>')
 
