@@ -5,7 +5,7 @@ import threading
 from time import sleep
 import requests
 import json
-from database import find_in_list, add_to_list, remove_from_list, find_in_trialcancelled
+from database import find_in_list, add_to_list, remove_from_list, find_in_trialcancelled, remove_from_trialcancelled, add_to_trialcancelled
 
 
 def executejob(id, date):
@@ -57,16 +57,28 @@ class update(Resource):
     def get(self, date, id):
         req = {"date": date, "id": id}
         print(req)
-        check = find_in_list(id, date)
-        if check:
-            data = {"status": "error", "reason": "Cron Job Already Scheduled"}
+
+        check_list = find_in_list(id)
+        check_cancelled_list = find_in_trialcancelled(id, date)
+
+
+        if check_cancelled_list:
+            remove_from_trialcancelled(check_cancelled_list)
+
+        if check_list:
+            if check_list['date'] != date:
+                data = process(date, id)
+                if data['status'] == "success":
+                    remove_from_list(check_list)
+                    add_to_trialcancelled(check_list)
+                    add_to_list(req)
+                    data = {"status": "success", "reason": "replaced existing trial"}
+
+            else:
+                data = {"status": "error", "reason": "Cron Job Already Scheduled"}
         else:
             data = process(date, id)
             if data['status'] == "success":
                 add_to_list(req)
 
         return data
-
-
-
-

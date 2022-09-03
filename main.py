@@ -24,6 +24,7 @@ def cancel_trialclass():
     id = req["id"]
     date = req["date"]
     check = find_in_trialcancelled(id, date)
+
     if check:
         message = "leads trial already cancelled"
     else:

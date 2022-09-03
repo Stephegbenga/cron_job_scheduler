@@ -35,23 +35,15 @@ def remove_from_trialcancelled(req):
         return "error"
 
 
-def find_in_list(id, date):
+def find_in_list(id):
     try:
         db = open(database_list)
         users = json.loads(db.read())
         for user in users:
-            if id == user['id']:
-                check = find_in_trialcancelled(id, user['date'])
-                if check:
-                    print("Trial class already cancelled")
-                else:
-                    add_to_trialcancelled({"id": id, "date": user['date']})
-
-                if user['date'] == date:
-                    return user
+            if user['id'] == id:
+                return user
     except Exception as e:
         print(e)
-
 
 def add_to_list(data):
     try:
