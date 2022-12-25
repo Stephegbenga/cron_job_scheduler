@@ -13,7 +13,6 @@ if cron_jobs:
         if data['status'] == 'error':
             remove_from_list({"id": id, "date":date})
 
-
 @app.route('/')
 def homepage():
     return "Cron Task Scheduler"
@@ -32,7 +31,17 @@ def cancel_trialclass():
         message = "Leads trial cancelled successfully"
     return message
 
-api.add_resource(update, '/cronschedule/<string:date>/<string:id>')
+
+@app.route('/cronschedule', methods=['POST'])
+def cronschedule():
+    req = request.get_json()
+    print(req)
+    if not req or "id" not in req or "date" not in req:
+        return {"status": "error", "reason": "id or date not in request"}
+    id = req["id"]
+    date = req["date"]
+    data = process(date, id)
+    return data
 
 
 if __name__ == '__main__':

@@ -1,77 +1,74 @@
 import json
 from time import sleep
-database_list = 'list.json'
-database_pause = 'trialcancelled.json'
+
+from pymongo import MongoClient
+
+config = {
+    'db_url':'mongodb+srv://yoga:aqqSvjd5ACywhiby@cluster0.iia2mvf.mongodb.net/?retryWrites=true&w=majority',
+    'db_name':'CronScheduler'
+}
+
+dburl = config['db_url']
+conn = MongoClient(dburl)
+
+db = conn.get_database(config['db_name'])
+
+database_list = db.get_collection('list')
+database_pause = db.get_collection('trialcancelled')
 
 def find_in_trialcancelled(id, date):
-    try:
-        db = open(database_pause)
-        users = json.loads(db.read())
-        for user in users:
-            if user['id'] == id and user['date'] == date:
-                return user
-    except Exception as e:
-        print(e)
+    dataa = database_pause.find_one({"id": id, "date": date})
+    return dataa
+
 
 def add_to_trialcancelled(data):
     try:
-        db = open(database_pause)
-        db_infos = json.loads(db.read())
-        db_infos.append(data)
-        with open(database_pause, 'w') as info:
-            json.dump(db_infos, info, indent=2)
+        data.pop('_id', None)
+        dataa = database_pause.insert_one(data)
+        print(dataa)
+        return dataa
     except Exception as e:
         print(e)
-        return "error"
+
 
 def remove_from_trialcancelled(req):
     try:
-        db = open(database_pause)
-        db_infos = json.loads(db.read())
-        db_infos.remove(req)
-        with open(database_pause, 'w') as info:
-            json.dump(db_infos, info, indent=2)
+        dataa = database_pause.delete_one({"id": req['id'], "date": req['date']})
+        print(dataa)
+        return (dataa)
     except Exception as e:
-        return "error"
+        print(e)
 
 
 def find_in_list(id):
-    try:
-        db = open(database_list)
-        users = json.loads(db.read())
-        for user in users:
-            if user['id'] == id:
-                return user
-    except Exception as e:
-        print(e)
+    dataa = database_list.find_one({"id": id})
+    return dataa
+
 
 def add_to_list(data):
     try:
-        db = open(database_list)
-        db_infos = json.loads(db.read())
-        db_infos.append(data)
-        with open(database_list, 'w') as info:
-            json.dump(db_infos, info, indent=2)
+        data.pop('_id', None)
+        dataa = database_list.insert_one(data)
+        print(dataa)
+        return dataa
     except Exception as e:
         print(e)
-        return "error"
 
 
 def remove_from_list(req):
-    print(req)
     try:
-        db = open(database_list)
-        db_infos = json.loads(db.read())
-        db_infos.remove(req)
-        with open(database_list, 'w') as info:
-            json.dump(db_infos, info, indent=2)
+        dataa = database_list.delete_one({"id": req['id'], "date": req['date']})
+        print(dataa)
+        return (dataa)
     except Exception as e:
         print(e)
-        return "error"
 
 
 def getall():
-    db = open(database_list)
-    users = json.loads(db.read())
-    if users:
-        return users
+    dataa = database_list.find({})
+    templates_array = []
+    for data in dataa:
+        data.pop('_id', None)
+        templates_array.append(data)
+
+    return templates_array

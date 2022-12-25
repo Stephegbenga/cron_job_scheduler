@@ -13,7 +13,7 @@ def executejob(id, date):
     if check_if_is_cancelled:
         print("This Trial class has alredy been cancelled")
     else:
-        url = "http://127.0.0.1:2001/cronexecute?number={}".format(id)
+        url = "https://asanafinder.com:2001/cronexecute?number={}".format(id)
         response = requests.request("GET", url)
         print(response.text)
 
@@ -53,32 +53,30 @@ def process(date, id):
     return data
 
 
-class update(Resource):
-    def get(self, date, id):
-        req = {"date": date, "id": id}
-        print(req)
-
-        check_list = find_in_list(id)
-        check_cancelled_list = find_in_trialcancelled(id, date)
+def update(date, id):
+    req = {"date": date, "id": id}
+    check_list = find_in_list(id)
+    check_cancelled_list = find_in_trialcancelled(id, date)
 
 
-        if check_cancelled_list:
-            remove_from_trialcancelled(check_cancelled_list)
+    if check_cancelled_list:
+        remove_from_trialcancelled(check_cancelled_list)
 
-        if check_list:
-            if check_list['date'] != date:
-                data = process(date, id)
-                if data['status'] == "success":
-                    remove_from_list(check_list)
-                    add_to_trialcancelled(check_list)
-                    add_to_list(req)
-                    data = {"status": "success", "reason": "replaced existing trial"}
-
-            else:
-                data = {"status": "error", "reason": "Cron Job Already Scheduled"}
-        else:
+    if check_list:
+        if check_list['date'] != date:
             data = process(date, id)
             if data['status'] == "success":
+                remove_from_list(check_list)
+                add_to_trialcancelled(check_list)
                 add_to_list(req)
+                data = {"status": "success", "reason": "replaced existing trial"}
 
-        return data
+        else:
+            data = {"status": "error", "reason": "Cron Job Already Scheduled"}
+    else:
+        data = process(date, id)
+        if data['status'] == "success":
+            add_to_list(req)
+
+    return data
+
