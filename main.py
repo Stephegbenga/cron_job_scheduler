@@ -1,17 +1,24 @@
 from scheduler import *
 from flask_restful import Resource, Api, request
-from database import getall, find_in_trialcancelled, add_to_trialcancelled
+from database import getall, find_in_trialcancelled, add_to_trialcancelled, add_to_list
 app = Flask(__name__)
 api = Api(app)
 
 cron_jobs = getall()
 if cron_jobs:
     for cron_job in cron_jobs:
+        print(cron_job)
         date = cron_job["date"]
         id = cron_job["id"]
-        data = process(date, id)
+        try:
+            callback = cron_job["callback"]
+        except:
+            callback = "https://asanafinder.com/cronexecute"
+        data = process(date, id, callback)
+        print(data)
         if data['status'] == 'error':
             remove_from_list({"id": id, "date":date})
+
 
 @app.route('/')
 def homepage():
@@ -40,7 +47,10 @@ def cronschedule():
         return {"status": "error", "reason": "id or date not in request"}
     id = req["id"]
     date = req["date"]
-    data = process(date, id)
+    callback = req["callback"]
+    data = process(date, id, callback)
+    if data['status'] == 'success':
+        add_to_list(req)
     return data
 
 

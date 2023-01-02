@@ -8,34 +8,33 @@ import json
 from database import find_in_list, add_to_list, remove_from_list, find_in_trialcancelled, remove_from_trialcancelled, add_to_trialcancelled
 
 
-def executejob(id, date):
+def executejob(id, date, callback):
     check_if_is_cancelled = find_in_trialcancelled(id, date)
     if check_if_is_cancelled:
         print("This Trial class has alredy been cancelled")
     else:
-        url = "https://asanafinder.com:2001/cronexecute?number={}".format(id)
+        url = f"{callback}?number={id}"
         response = requests.request("GET", url)
         print(response.text)
 
-
-def cron(cron_in_secs, id, date):
+def cron(cron_in_secs, id, date, callback):
     if cron_in_secs > 4294967:
             splitted_time = cron_in_secs / 200
             if splitted_time < 4294967:
                 for i in range(200):
                     sleep(cron_in_secs/200)
                 remove_from_list({"id": id, "date": date})
-                executejob(id, date)
+                executejob(id, date, callback)
             else:
                 sleep(3)
                 remove_from_list({"id": id, "date": date})
     else:
         sleep(cron_in_secs)
         remove_from_list({"id": id, "date":date})
-        executejob(id, date)
+        executejob(id, date, callback)
 
 
-def process(date, id):
+def process(date, id, callback):
     org_date = date
     china_now = datetime.now(timezone(timedelta(hours=8)))
     china_now = china_now.strftime('%Y-%m-%d+%H:%M')
@@ -46,15 +45,15 @@ def process(date, id):
     if date > china_now:
         diff = date - china_now
         diff = diff.total_seconds()
-        threading.Thread(target=cron, args=[diff, id, org_date]).start()
+        threading.Thread(target=cron, args=[diff, id, org_date, callback]).start()
         data = {"status": "success"}
     else:
         data = {"status": "error", "reason": "date is in the past"}
     return data
 
 
-def update(date, id):
-    req = {"date": date, "id": id}
+def update(date, id, callback="https://asanafinder.com/cronexecute"):
+    req = {"date": date, "id": id, "callback": callback}
     check_list = find_in_list(id)
     check_cancelled_list = find_in_trialcancelled(id, date)
 
@@ -64,7 +63,7 @@ def update(date, id):
 
     if check_list:
         if check_list['date'] != date:
-            data = process(date, id)
+            data = process(date, id, callback)
             if data['status'] == "success":
                 remove_from_list(check_list)
                 add_to_trialcancelled(check_list)
@@ -74,7 +73,7 @@ def update(date, id):
         else:
             data = {"status": "error", "reason": "Cron Job Already Scheduled"}
     else:
-        data = process(date, id)
+        data = process(date, id, callback)
         if data['status'] == "success":
             add_to_list(req)
 
