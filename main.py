@@ -1,6 +1,7 @@
 from scheduler import *
 from flask_restful import Resource, Api, request
 from database import getall, find_in_trialcancelled, add_to_trialcancelled, add_to_list
+from emergency_utils import stop_all_bots, start_all_bots
 app = Flask(__name__)
 api = Api(app)
 
@@ -23,6 +24,28 @@ if cron_jobs:
 @app.route('/')
 def homepage():
     return "Cron Task Scheduler"
+
+
+
+@app.route('/stop', methods=['GET'])
+def stop():
+    try:
+        stop_all_bots()
+    except Exception as e:
+        print(e)
+        return "Something went wrong", 500
+    return "All bots has been stopped", 200
+
+
+@app.route('/start', methods=['GET'])
+def start():
+    try:
+        start_all_bots()
+    except Exception as e:
+        print(e)
+        return "Something went wrong", 500
+    return "All bots has been started", 200
+
 
 @app.route('/cancel_trialclass', methods=['POST'])
 def cancel_trialclass():
