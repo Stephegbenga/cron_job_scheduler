@@ -8,14 +8,3 @@ def execute_command(command):
     except:
         print("Something went wrong")
 
-
-def stop_all_bots():
-    for bot in bot_arrays:
-        command = f"pm2 stop {bot}"
-        execute_command(command)
-
-
-def start_all_bots():
-    for bot in bot_arrays:
-        command = f"pm2 restart {bot}"
-        execute_command(command)

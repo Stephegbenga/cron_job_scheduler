@@ -1,7 +1,7 @@
 from scheduler import *
 from flask_restful import Resource, Api, request
 from database import getall, find_in_trialcancelled, add_to_trialcancelled, add_to_list
-from emergency_utils import stop_all_bots, start_all_bots
+from emergency_utils import execute_command
 app = Flask(__name__)
 api = Api(app)
 
@@ -30,21 +30,25 @@ def homepage():
 @app.route('/stop', methods=['GET'])
 def stop():
     try:
-        stop_all_bots()
+        bot = request.args.get('bot')
+        command = f"pm2 stop {bot}"
+        execute_command(command)
     except Exception as e:
         print(e)
         return "Something went wrong", 500
-    return "All bots has been stopped", 200
+    return "Bot stopped", 200
 
 
 @app.route('/start', methods=['GET'])
 def start():
     try:
-        start_all_bots()
+        bot = request.args.get('bot')
+        command = f"pm2 restart {bot}"
+        execute_command(command)
     except Exception as e:
         print(e)
         return "Something went wrong", 500
-    return "All bots has been started", 200
+    return "Bot started successfully", 200
 
 
 @app.route('/cancel_trialclass', methods=['POST'])
