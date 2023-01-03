@@ -11,7 +11,7 @@ def execute_command(command):
 
 def stop_all_bots():
     for bot in bot_arrays:
-        command = f"pm2 restart {bot}"
+        command = f"pm2 stop {bot}"
         execute_command(command)
 
 
